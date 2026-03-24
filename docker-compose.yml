@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    restart: always
+
+  # Optional: database service if user wants to run it in docker too
+  # db:
+  #   image: mariadb:latest
+  #   environment:
+  #     MYSQL_ROOT_PASSWORD: moussa
+  #     MYSQL_DATABASE: smart_ecommerce
