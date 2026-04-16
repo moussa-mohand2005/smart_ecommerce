@@ -1,0 +1,15 @@
+streamlit
+pandas
+pymysql
+plotly
+google-generativeai
+groq
+python-dotenv
+scikit-learn
+mlxtend
+html2text
+openpyxl
+xgboost
+requests
+beautifulsoup4
+numpy

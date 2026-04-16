@@ -1,0 +1,137 @@
+# PIPELINE DEFINITION
+# Name: smart-shoe-mlops-pipeline
+# Description: An end-to-end pipeline for shoe data scraping, AI enrichment, and ML analytics.
+components:
+  comp-analyze-op:
+    executorLabel: exec-analyze-op
+  comp-enrich-op:
+    executorLabel: exec-enrich-op
+  comp-scrape-op:
+    executorLabel: exec-scrape-op
+deploymentSpec:
+  executors:
+    exec-analyze-op:
+      container:
+        args:
+        - --executor_input
+        - '{{$}}'
+        - --function_to_execute
+        - analyze_op
+        command:
+        - sh
+        - -c
+        - "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip ||\
+          \ python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1\
+          \ python3 -m pip install --quiet --no-warn-script-location 'kfp==2.16.0'\
+          \ '--no-deps' 'typing-extensions>=3.7.4,<5; python_version<\"3.9\"' && \"\
+          $0\" \"$@\"\n"
+        - sh
+        - -ec
+        - 'program_path=$(mktemp -d)
+
+
+          printf "%s" "$0" > "$program_path/ephemeral_component.py"
+
+          _KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         "$program_path/ephemeral_component.py"                         "$@"
+
+          '
+        - "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import\
+          \ *\n\ndef analyze_op():\n    import subprocess\n    print(\"Starting ML\
+          \ Analytics Phase...\")\n    # subprocess.run([\"python\", \"step3_ml_analytics.py\"\
+          ], check=True)\n\n"
+        image: python:3.10
+    exec-enrich-op:
+      container:
+        args:
+        - --executor_input
+        - '{{$}}'
+        - --function_to_execute
+        - enrich_op
+        command:
+        - sh
+        - -c
+        - "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip ||\
+          \ python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1\
+          \ python3 -m pip install --quiet --no-warn-script-location 'kfp==2.16.0'\
+          \ '--no-deps' 'typing-extensions>=3.7.4,<5; python_version<\"3.9\"' && \"\
+          $0\" \"$@\"\n"
+        - sh
+        - -ec
+        - 'program_path=$(mktemp -d)
+
+
+          printf "%s" "$0" > "$program_path/ephemeral_component.py"
+
+          _KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         "$program_path/ephemeral_component.py"                         "$@"
+
+          '
+        - "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import\
+          \ *\n\ndef enrich_op():\n    import subprocess\n    print(\"Starting AI\
+          \ Enrichment Phase...\")\n    # subprocess.run([\"python\", \"step2_llm_enrichment.py\"\
+          ], check=True)\n\n"
+        image: python:3.10
+    exec-scrape-op:
+      container:
+        args:
+        - --executor_input
+        - '{{$}}'
+        - --function_to_execute
+        - scrape_op
+        command:
+        - sh
+        - -c
+        - "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip ||\
+          \ python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1\
+          \ python3 -m pip install --quiet --no-warn-script-location 'kfp==2.16.0'\
+          \ '--no-deps' 'typing-extensions>=3.7.4,<5; python_version<\"3.9\"' && \"\
+          $0\" \"$@\"\n"
+        - sh
+        - -ec
+        - 'program_path=$(mktemp -d)
+
+
+          printf "%s" "$0" > "$program_path/ephemeral_component.py"
+
+          _KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         "$program_path/ephemeral_component.py"                         "$@"
+
+          '
+        - "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import\
+          \ *\n\ndef scrape_op():\n    import subprocess\n    print(\"Starting Web\
+          \ Scraping Phase...\")\n    # In a real K8s environment, you'd have the\
+          \ code and dependencies in the image\n    # subprocess.run([\"python\",\
+          \ \"step1_web_scraper.py\"], check=True)\n\n"
+        image: python:3.10
+pipelineInfo:
+  description: An end-to-end pipeline for shoe data scraping, AI enrichment, and ML
+    analytics.
+  name: smart-shoe-mlops-pipeline
+root:
+  dag:
+    tasks:
+      analyze-op:
+        cachingOptions:
+          enableCache: true
+        componentRef:
+          name: comp-analyze-op
+        dependentTasks:
+        - enrich-op
+        taskInfo:
+          name: analyze-op
+      enrich-op:
+        cachingOptions:
+          enableCache: true
+        componentRef:
+          name: comp-enrich-op
+        dependentTasks:
+        - scrape-op
+        taskInfo:
+          name: enrich-op
+      scrape-op:
+        cachingOptions:
+          enableCache: true
+        componentRef:
+          name: comp-scrape-op
+        taskInfo:
+          name: scrape-op
+schemaVersion: 2.1.0
+sdkVersion: kfp-2.16.0
