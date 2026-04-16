@@ -459,7 +459,7 @@ active_filters_count = len(fdf)
 if selected_page == "Curated Top Picks":
     header_col, _ = st.columns([3, 1])
     with header_col:
-        st.markdown('<div class="page-title">Catalog Intelligence</div>', unsafe_allow_html=True)
+        st.markdown('<div class="page-title">Smart Ecommerce</div>', unsafe_allow_html=True)
         st.markdown('<div class="page-sub">Enterprise Asset Management & AI Valuation</div>', unsafe_allow_html=True)
 
     kpis = [
