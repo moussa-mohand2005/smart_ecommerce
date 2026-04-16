@@ -47,8 +47,21 @@ html, body, [class*="css"] {
     color: var(--text);
 }
 .stApp { background: var(--bg); }
-[data-testid="stHeader"] { background: transparent; }
-[data-testid="stToolbar"] { display: none; }
+/* Header & Sidebar Controls */
+[data-testid="stHeader"] { 
+    background: transparent !important; 
+    z-index: 999999 !important; 
+}
+/* Ensure the sidebar collapse/expand button is ALWAYS visible and interactive */
+button[data-testid="stSidebarCollapseButton"] {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    color: var(--accent) !important; /* Use accent color to make it obvious */
+    background: rgba(30, 41, 59, 0.5) !important;
+    border-radius: 50% !important;
+    z-index: 1000000 !important;
+}
 
 /* Sidebar */
 [data-testid="stSidebar"] {
@@ -333,6 +346,7 @@ label[data-testid="stWidgetLabel"] { color: var(--muted) !important; font-size: 
 }
 </style>
 """, unsafe_allow_html=True)
+
 
 ACCENT_COLOR = "#0ea5e9"
 INDIGO_COLOR = "#6366f1"
