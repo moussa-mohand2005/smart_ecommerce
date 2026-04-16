@@ -727,10 +727,13 @@ elif selected_page == "Brand Intelligence":
         st.info("Run ML Analysis to generate attribute correlation rules.")
 
 elif selected_page == "Data Explorer":
-    # ── State Management ──
     if 'detail_view_id' not in st.session_state:
         st.session_state.detail_view_id = None
 
+    if st.session_state.detail_view_id:
+        p_id = st.session_state.detail_view_id
+        product = df[df['product_id'] == p_id].iloc[0]
+        
         top_c1, top_c2 = st.columns([5, 1])
         with top_c1:
             st.markdown(f'<div class="page-title">{product["product_name"]}</div>', unsafe_allow_html=True)
@@ -742,7 +745,6 @@ elif selected_page == "Data Explorer":
 
         st.markdown("<br>", unsafe_allow_html=True)
 
-        # ── Row 1: Hero & Executive Summary ──
         hero_left, hero_right = st.columns([1, 1.4])
         with hero_left:
             st.image(product['image_url_main'], use_container_width=True)
@@ -750,14 +752,12 @@ elif selected_page == "Data Explorer":
         with hero_right:
             st.markdown('<div class="section-heading"><i class="bi bi-file-earmark-bar-graph"></i>&nbsp; Executive Summary</div>', unsafe_allow_html=True)
             
-            # Key Performance Indicators
             k1, k2, k3, k4 = st.columns(4)
             k1.metric("AI Score", f"{product['ml_score']:.1f}", delta=f"Tier: High" if product['ml_score'] >= 70 else "Tier: Mid")
             k2.metric("Success Prob.", f"{product.get('predicted_success',0):.1f}%")
             k3.metric("Rating", f"{product['rating_avg']:.1f} ⭐")
             k4.metric("Unit Price", f"${product['current_price']:.0f}")
 
-            # Technical Profile Grid
             st.markdown('<div class="section-heading" style="margin-top:2rem;"><i class="bi bi-sliders"></i>&nbsp; Technical Profile</div>', unsafe_allow_html=True)
             t1, t2, t3, t4 = st.columns(4)
             profiles = [
@@ -768,14 +768,13 @@ elif selected_page == "Data Explorer":
             ]
             for col, (label, val, icon) in zip([t1, t2, t3, t4], profiles):
                 col.markdown(f"""
-                <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:12px; padding:1rem; text-align:center;">
+                <div style="background:rgba(255,255,255,0.03); border-radius:12px; padding:1rem; text-align:center;">
                     <div style="font-size:0.7rem; color:var(--muted); text-transform:uppercase; margin-bottom:0.5rem; letter-spacing:1px;">{label}</div>
                     <i class="bi {icon}" style="font-size:1.2rem; color:var(--accent);"></i>
                     <div style="font-size:0.85rem; font-weight:700; color:var(--text); margin-top:0.5rem;">{val}</div>
                 </div>
                 """, unsafe_allow_html=True)
 
-        # ── Row 2: Market Intelligence & Synthesis ──
         st.markdown("<br>", unsafe_allow_html=True)
         m_left, m_right = st.columns([1, 1])
         
@@ -784,7 +783,6 @@ elif selected_page == "Data Explorer":
             cid = product['cluster_id']
             cluster_data = df[df['cluster_id'] == cid]
             
-            # Sub-metrics for positioning
             st.markdown(f"""
             <div style="background:var(--card); border:1px solid var(--border); border-radius:16px; padding:1.5rem; margin-bottom:1rem;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.2rem;">
