@@ -3,6 +3,7 @@ import pandas as pd
 import pymysql
 import plotly.express as px
 import plotly.graph_objects as go
+import networkx as nx
 import os
 import json
 from dotenv import load_dotenv
@@ -370,6 +371,72 @@ def apply_theme(fig, title=None, height=360):
     )
     return fig
 
+def render_association_network(rules_df):
+    """Generates an interactive Network Graph for Association Rules."""
+    if rules_df.empty:
+        return None
+    
+    # Limit to top 15 rules for clarity
+    rules = rules_df.head(15).copy()
+    
+    G = nx.DiGraph()
+    for _, row in rules.iterrows():
+        G.add_edge(row['antecedents'], row['consequents'], weight=row['lift'])
+        
+    pos = nx.spring_layout(G, k=0.5, iterations=50, seed=42)
+    
+    edge_x = []
+    edge_y = []
+    for edge in G.edges():
+        x0, y0 = pos[edge[0]]
+        x1, y1 = pos[edge[1]]
+        edge_x.extend([x0, x1, None])
+        edge_y.extend([y0, y1, None])
+
+    edge_trace = go.Scatter(
+        x=edge_x, y=edge_y,
+        line=dict(width=1, color='rgba(255,255,255,0.15)'),
+        hoverinfo='none',
+        mode='lines'
+    )
+
+    node_x = []
+    node_y = []
+    node_text = []
+    for node in G.nodes():
+        x, y = pos[node]
+        node_x.append(x)
+        node_y.append(y)
+        node_text.append(node)
+
+    node_trace = go.Scatter(
+        x=node_x, y=node_y,
+        mode='markers+text',
+        hoverinfo='text',
+        text=node_text,
+        textposition="bottom center",
+        marker=dict(
+            showscale=False,
+            color='#0ea5e9',
+            size=12,
+            line_width=2,
+            line_color='white'
+        )
+    )
+    
+    fig = go.Figure(data=[edge_trace, node_trace],
+                 layout=go.Layout(
+                    showlegend=False,
+                    hovermode='closest',
+                    margin=dict(b=0,l=0,r=0,t=0),
+                    xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+                    yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+                    paper_bgcolor='rgba(0,0,0,0)',
+                    plot_bgcolor='rgba(0,0,0,0)',
+                    height=500
+                ))
+    return fig
+
 def card_wrap(content, padding="1.2rem 1.4rem"):
     return f"""<div style="background:#131918;border:1px solid rgba(255,255,255,0.06);
     border-radius:14px;padding:{padding};margin-bottom:1rem;">{content}</div>"""
@@ -733,10 +800,13 @@ elif selected_page == "Brand Intelligence":
     st.markdown('<div class="section-heading" style="margin-top:1.5rem;">🧬 Footwear Attribute Correlations</div>', unsafe_allow_html=True)
     try:
         rules = pd.read_csv("footwear_correlations.csv")
-        st.dataframe(
-            rules[['antecedents','consequents','lift']].head(10),
-            use_container_width=True, hide_index=True
-        )
+        fig_network = render_association_network(rules)
+        if fig_network:
+            st.plotly_chart(fig_network, use_container_width=True)
+            with st.expander("View Raw Data Rules"):
+                st.dataframe(rules[['antecedents','consequents','lift']].head(20), use_container_width=True, hide_index=True)
+        else:
+            st.info("Insufficient data for correlation network.")
     except:
         st.info("Run ML Analysis to generate attribute correlation rules.")
 
