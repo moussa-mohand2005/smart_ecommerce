@@ -14,6 +14,7 @@ from dotenv import load_dotenv
 warnings.filterwarnings("ignore", category=FutureWarning)
 warnings.filterwarnings("ignore", category=UserWarning)
 load_dotenv()
+TOP_K = int(os.getenv("TOP_K_PRODUCTS", "10"))
 
 def get_connection():
     return pymysql.connect(
@@ -30,7 +31,9 @@ def calculate_scores(df):
     df['current_price'] = pd.to_numeric(df['current_price'], errors='coerce')
     median_price = df['current_price'].median()
     df['current_price'] = df['current_price'].fillna(median_price if pd.notnull(median_price) else 0)
-    df['in_stock'] = df['stock_status'].apply(lambda x: 1 if x and 'instock' in str(x).lower() else 0)
+    df['in_stock'] = df['stock_status'].apply(
+        lambda x: 1 if str(x).lower().replace("-", "_") in {"instock", "in_stock", "available"} else 0
+    )
 
     scaler = MinMaxScaler()
     df['score_price'] = 1 - scaler.fit_transform(df[['current_price']]).flatten() if df['current_price'].nunique() > 1 else 1.0
@@ -136,6 +139,22 @@ def run_association_rules(df):
     rules['consequents'] = rules['consequents'].apply(lambda x: ', '.join(list(x)))
     return rules.sort_values('lift', ascending=False)
 
+def export_top_k(df, output_path="top_k_products.csv", k=TOP_K):
+    """Export the Top-K products for reporting, BI, and downstream orchestration."""
+    columns = [
+        'product_id', 'product_name', 'brand', 'current_price', 'currency',
+        'stock_status', 'rating_avg', 'reviews_count', 'ml_score',
+        'predicted_success', 'cluster_id', 'product_url'
+    ]
+    available_columns = [col for col in columns if col in df.columns]
+    top_k = df.sort_values(
+        ['ml_score', 'predicted_success'],
+        ascending=False
+    ).head(k)
+    top_k[available_columns].to_csv(output_path, index=False)
+    print(f"Top-{k} products exported to {output_path}")
+    return top_k
+
 def main():
     conn = get_connection()
     try:
@@ -149,6 +168,7 @@ def main():
         df = run_clustering(df)
         df = run_pca(df)
         df = run_predictive_model(df)
+        export_top_k(df)
         
         rules = run_association_rules(df)
         if not rules.empty: rules.to_csv("footwear_correlations.csv", index=False)

@@ -10,6 +10,7 @@ import random
 import time
 import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from pathlib import Path
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -273,9 +274,7 @@ def parse_product_page(url, shop_id, brand_name, platform):
         
         img = soup.find("meta", attrs={"property": "og:image"})
         img_url = img["content"] if img else None
-        desc = "" # Will fill from description_raw
-
-            desc = soup.body.get_text(" ", strip=True) if soup.body else ""
+        desc = soup.body.get_text(" ", strip=True) if soup.body else ""
 
     # Determine stock status
     stock_status = "unknown"
@@ -345,6 +344,8 @@ def process_shop(row):
             if products:
                 print(f"  [+] Extracted {len(products)} products via Sitemap")
 
+        if not products:
+            links = extract_product_links(collection_url, site_url, platform)
             for link in links[:1000]: 
                 if stop_event.is_set(): break
                 p = parse_product_page(link, shop_id, shop_name, platform)
@@ -400,10 +401,14 @@ def insert_product(product):
     finally: conn.close()
 
 def main():
+    input_file = Path(os.getenv(
+        "SHOP_INPUT_FILE",
+        "gulf_perfume_stores_shopify_woocommerce_verified.xlsx"
+    ))
     try: 
-        df = pd.read_excel(r"c:\Users\LENOVO\Downloads\pro fenan\code\gulf_perfume_stores_shopify_woocommerce_verified.xlsx")
+        df = pd.read_excel(input_file)
     except Exception as e: 
-        print(f"Error loading Excel: {e}")
+        print(f"Error loading Excel file '{input_file}': {e}")
         return
     
     print(f"--- Starting Smart AI Scraper (Target: {MAX_PRODUCTS} shoes) ---")

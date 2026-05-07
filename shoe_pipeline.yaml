@@ -1,6 +1,6 @@
 # PIPELINE DEFINITION
 # Name: smart-shoe-mlops-pipeline
-# Description: An end-to-end pipeline for shoe data scraping, AI enrichment, and ML analytics.
+# Description: End-to-end scraping, LLM enrichment, ML scoring, and Top-K product selection.
 components:
   comp-analyze-op:
     executorLabel: exec-analyze-op
@@ -36,10 +36,10 @@ deploymentSpec:
 
           '
         - "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import\
-          \ *\n\ndef analyze_op():\n    import subprocess\n    print(\"Starting ML\
-          \ Analytics Phase...\")\n    # subprocess.run([\"python\", \"step3_ml_analytics.py\"\
-          ], check=True)\n\n"
-        image: python:3.10
+          \ *\n\ndef analyze_op():\n    import subprocess\n    import sys\n\n    print(\"\
+          Starting ML Analytics and Top-K Selection Phase...\")\n    subprocess.run([sys.executable,\
+          \ \"step3_ml_analytics.py\"], check=True)\n\n"
+        image: smart-shoe-pipeline:latest
     exec-enrich-op:
       container:
         args:
@@ -66,10 +66,10 @@ deploymentSpec:
 
           '
         - "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import\
-          \ *\n\ndef enrich_op():\n    import subprocess\n    print(\"Starting AI\
-          \ Enrichment Phase...\")\n    # subprocess.run([\"python\", \"step2_llm_enrichment.py\"\
-          ], check=True)\n\n"
-        image: python:3.10
+          \ *\n\ndef enrich_op():\n    import subprocess\n    import sys\n\n    print(\"\
+          Starting AI Enrichment Phase...\")\n    subprocess.run([sys.executable,\
+          \ \"step2_llm_enrichment.py\"], check=True)\n\n"
+        image: smart-shoe-pipeline:latest
     exec-scrape-op:
       container:
         args:
@@ -96,14 +96,13 @@ deploymentSpec:
 
           '
         - "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import\
-          \ *\n\ndef scrape_op():\n    import subprocess\n    print(\"Starting Web\
-          \ Scraping Phase...\")\n    # In a real K8s environment, you'd have the\
-          \ code and dependencies in the image\n    # subprocess.run([\"python\",\
-          \ \"step1_web_scraper.py\"], check=True)\n\n"
-        image: python:3.10
+          \ *\n\ndef scrape_op():\n    import subprocess\n    import sys\n\n    print(\"\
+          Starting Web Scraping Phase...\")\n    subprocess.run([sys.executable, \"\
+          step1_web_scraper.py\"], check=True)\n\n"
+        image: smart-shoe-pipeline:latest
 pipelineInfo:
-  description: An end-to-end pipeline for shoe data scraping, AI enrichment, and ML
-    analytics.
+  description: End-to-end scraping, LLM enrichment, ML scoring, and Top-K product
+    selection.
   name: smart-shoe-mlops-pipeline
 root:
   dag:
