@@ -371,9 +371,3 @@ Lancer le dashboard:
 ```powershell
 streamlit run step4_bi_dashboard.py
 ```
-
-Voir l'etat Git:
-
-```powershell
-git status
-```
