@@ -446,6 +446,7 @@ def get_data():
     conn = pymysql.connect(
         host=os.getenv("DB_HOST", "mysql-9bb49e6-mussumuhand-6385.h.aivencloud.com"),
         user=os.getenv("DB_USER", "avnadmin"),
+        port=int(os.getenv("DB_PORT", 12873)),
         password=os.getenv("DB_PASS", "AVNS_G-b7XnZ8swYKHySMSEd"),
         database=os.getenv("DB_NAME", "defaultdb"),
         charset="utf8mb4",
