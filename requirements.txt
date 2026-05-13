@@ -17,3 +17,7 @@ networkx
 kfp
 psycopg2-binary
 sqlalchemy
+mysql-connector-python
+cryptography
+psycopg2-binary
+pymysql
