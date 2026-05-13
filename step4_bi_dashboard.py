@@ -444,10 +444,10 @@ def card_wrap(content, padding="1.2rem 1.4rem"):
 @st.cache_data(ttl=300)
 def get_data():
     conn = pymysql.connect(
-        host=os.getenv("DB_HOST", "localhost"),
-        user=os.getenv("DB_USER", "root"),
-        password=os.getenv("DB_PASS", ""),
-        database=os.getenv("DB_NAME", "smart_ecommerce"),
+        host=os.getenv("DB_HOST", "mysql-9bb49e6-mussumuhand-6385.h.aivencloud.com"),
+        user=os.getenv("DB_USER", "avnadmin"),
+        password=os.getenv("DB_PASS", "AVNS_G-b7XnZ8swYKHySMSEd"),
+        database=os.getenv("DB_NAME", "defaultdb"),
         charset="utf8mb4",
     )
     df = pd.read_sql("SELECT * FROM products", conn)
