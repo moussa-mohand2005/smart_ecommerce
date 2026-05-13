@@ -15,3 +15,5 @@ beautifulsoup4
 numpy
 networkx
 kfp
+psycopg2-binary
+sqlalchemy
