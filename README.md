@@ -272,4 +272,3 @@ streamlit run step4_bi_dashboard.py
 | `fashion_correlations.csv` | Association rules between fashion attributes |
 | `mcp_audit.log` | MCP-style tool access logs |
 
-## Security
