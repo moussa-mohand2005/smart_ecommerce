@@ -1,0 +1,11 @@
+product_id,product_name,brand,category,subcategory,current_price,currency,stock_status,rating_avg,reviews_count,ml_score,predicted_success,cluster_id,product_url
+3347,Spacer - Short Sleeve Shirts - Shorts,Taylor Stitch,Clothing,Shirts,0.0,USD,in_stock,0.0,0,99.99999999999999,99.81556,6,https://www.taylorstitch.com/products/spacer-short-sleeve-hawthorne-shorts
+3348,Spacer - All Footwear,Taylor Stitch,Footwear,General,0.0,USD,in_stock,0.0,0,99.99999999999999,99.81556,0,https://www.taylorstitch.com/products/spacer-all-footwear
+3349,Spacer - Mens Tees - Heavy Bag Tee,Taylor Stitch,Clothing,T-Shirts,0.0,USD,in_stock,0.0,0,99.99999999999999,99.81556,6,https://www.taylorstitch.com/products/spacer-mens-tees-heavy-bag-tee
+3350,Spacer - Mens Tees - Organic Cotton Tee,Taylor Stitch,Clothing,T-Shirts,0.0,USD,in_stock,0.0,0,99.99999999999999,99.81556,6,https://www.taylorstitch.com/products/spacer-mens-tees-organic-cotton-tee
+3351,Spacer - Mens Tees - Cotton Hemp Tee,Taylor Stitch,Clothing,T-Shirts,0.0,USD,in_stock,0.0,0,99.99999999999999,99.81556,6,https://www.taylorstitch.com/products/copy-of-spacer-mens-tees-cotton-hemp-tee
+3352,Spacer - The Organic Cotton Tee - Classic Tees,Taylor Stitch,Clothing,T-Shirts,0.0,USD,in_stock,0.0,0,99.99999999999999,99.81556,6,https://www.taylorstitch.com/products/spacer-apres-collection-03
+3,Topper Flat Laces - Natural White,Allbirds,Footwear,Flats,3.0,USD,in_stock,0.0,0,99.95192307692308,99.81556,2,https://www.allbirds.com/products/topper-flat-laces-natural-white
+4,Topper Flat Laces - Natural Black,Allbirds,Footwear,Flats,3.0,USD,in_stock,0.0,0,99.95192307692308,99.81556,4,https://www.allbirds.com/products/topper-flat-laces-natural-black
+11,Skipper Flat Laces - Natural White,Allbirds,Footwear,Flats,3.0,USD,in_stock,0.0,0,99.95192307692308,99.81556,2,https://www.allbirds.com/products/skipper-flat-laces-natural-white
+12,Skipper Flat Laces - Natural Black,Allbirds,Footwear,Flats,3.0,USD,in_stock,0.0,0,99.95192307692308,99.81556,2,https://www.allbirds.com/products/skipper-flat-laces-natural-black

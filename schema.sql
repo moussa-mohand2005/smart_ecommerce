@@ -29,6 +29,9 @@ CREATE TABLE IF NOT EXISTS products (
     sole_type VARCHAR(255),
     closure VARCHAR(255),
     gender VARCHAR(50),
+    fit VARCHAR(100),
+    season VARCHAR(100),
+    style_type VARCHAR(100),
     persona_json JSON,
     is_enriched BOOLEAN DEFAULT FALSE,
     ml_score DECIMAL(8, 4),
@@ -41,6 +44,7 @@ CREATE TABLE IF NOT EXISTS products (
     UNIQUE KEY uniq_shop_external_product (shop_id, external_product_id),
     INDEX idx_products_enriched_score (is_enriched, ml_score),
     INDEX idx_products_cluster (cluster_id),
+    INDEX idx_products_category (category),
     CONSTRAINT fk_products_shop
         FOREIGN KEY (shop_id) REFERENCES shops(shop_id)
         ON DELETE CASCADE

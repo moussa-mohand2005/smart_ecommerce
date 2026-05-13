@@ -1,44 +1,45 @@
-# Smart E-commerce Intelligence
+# Smart Fashion Intelligence
 
-Smart E-commerce Intelligence est un projet MLOps de veille produit pour les boutiques e-commerce. Il automatise la collecte de produits depuis Shopify/WooCommerce, enrichit les donnees avec des LLMs, applique des analyses ML pour selectionner les meilleurs produits, puis expose les resultats dans un dashboard BI interactif.
+Smart Fashion Intelligence is an MLOps product intelligence project for e-commerce stores. It automates the collection of products from Shopify/WooCommerce stores, enriches data with LLMs, applies ML analytics to select the best products, then exposes results in an interactive BI dashboard.
 
-Le cas d'usage principal est l'analyse intelligente de produits footwear: sneakers, boots, sandals, loafers, heels, etc.
+The main use case is intelligent analysis of fashion products: clothing (shirts, jackets, dresses, pants, hoodies...) and footwear (sneakers, boots, sandals, heels...) for all demographics (men, women, kids, unisex).
 
-## Objectifs
+## Objectives
 
-- Scraper automatiquement des produits depuis des boutiques Shopify/WooCommerce.
-- Filtrer les produits footwear avec des regles textuelles et une validation LLM.
-- Enrichir les fiches produits avec des attributs techniques: material, sole type, closure, gender, description courte et persona marketing.
-- Calculer un score ML pour identifier les produits les plus attractifs.
-- Exporter une selection Top-K des meilleurs produits.
-- Visualiser les KPIs, tendances, clusters et recommandations dans Streamlit.
-- Orchestrer le workflow avec un pipeline MLOps/Kubeflow.
-- Encadrer l'acces aux donnees via un serveur MCP-style responsable.
-- Automatiser les tests de base avec GitHub Actions.
+- Automatically scrape products from Shopify/WooCommerce stores.
+- Filter fashion products (clothing & footwear) with keyword rules and LLM validation.
+- Enrich product listings with technical attributes: material, fit/sole type, closure, gender, season, style type, short description, and marketing persona.
+- Calculate an ML score to identify the most attractive products.
+- Export a Top-K selection of the best products.
+- Visualize KPIs, trends, clusters, and recommendations in Streamlit.
+- Orchestrate the workflow with an MLOps/Kubeflow pipeline.
+- Control data access via a responsible MCP-style server.
+- Automate basic tests with GitHub Actions.
 
 ## Architecture
 
 ```text
-Sources e-commerce
+E-commerce Sources (45 Shopify/WooCommerce stores)
     |
     v
 step1_web_scraper.py
-    Scraping, crawling, detection Shopify/WooCommerce, insertion MySQL
+    Scraping, crawling, Shopify/WooCommerce detection, MySQL insertion
+    Target: 5000 products (clothing + footwear)
     |
     v
 step2_llm_enrichment.py
-    Enrichissement Gemini/Groq, attributs techniques, persona
+    Gemini/Groq enrichment, technical attributes, persona
     |
     v
 step3_ml_analytics.py
-    Scoring, Top-K, clustering, PCA, XGBoost, regles d'association
+    Scoring, Top-K, clustering, PCA, XGBoost, association rules
     |
     +--> top_k_products.csv
-    +--> footwear_correlations.csv
+    +--> fashion_correlations.csv
     |
     v
 step4_bi_dashboard.py
-    Dashboard BI Streamlit + Plotly
+    BI Dashboard: Streamlit + Plotly
 
 Orchestration:
     step5_mlops_pipeline.py
@@ -49,235 +50,206 @@ Responsible AI:
     step6_responsible_ai_mcp.py
 ```
 
-## Structure du projet
+## Project Structure
 
-| Fichier | Role |
+| File | Role |
 |---|---|
-| `step1_web_scraper.py` | Scraping Shopify/WooCommerce, crawling HTML, extraction produits, insertion DB |
-| `step2_llm_enrichment.py` | Enrichissement LLM avec Gemini/Groq |
-| `step3_ml_analytics.py` | Scoring ML, clustering, PCA, XGBoost, Top-K |
-| `step4_bi_dashboard.py` | Dashboard Business Intelligence Streamlit |
-| `step5_mlops_pipeline.py` | Pipeline local qui lance les etapes 1, 2 et 3 |
-| `step6_responsible_ai_mcp.py` | Serveur MCP-style read-only avec validation et audit log |
-| `kubeflow_pipeline.py` | Definition du pipeline Kubeflow avec le SDK `kfp` |
-| `shoe_pipeline.yaml` | Pipeline Kubeflow compile |
-| `schema.sql` | Schema MySQL des tables `shops` et `products` |
-| `ci_seed.sql` | Donnees de test pour GitHub Actions |
-| `Dockerfile` | Image Docker du pipeline |
-| `docker-compose.yml` | Base pour lancer les services avec Docker Compose |
-| `.github/workflows/mlops.yml` | Workflow CI/CD |
-| `.env.example` | Exemple de configuration sans secrets reels |
+| `step1_web_scraper.py` | Scraping Shopify/WooCommerce, HTML crawling, product extraction, DB insertion |
+| `step2_llm_enrichment.py` | LLM enrichment with Gemini/Groq |
+| `step3_ml_analytics.py` | ML scoring, clustering, PCA, XGBoost, Top-K |
+| `step4_bi_dashboard.py` | Business Intelligence Streamlit Dashboard |
+| `step5_mlops_pipeline.py` | Local pipeline that runs steps 1, 2, and 3 |
+| `step6_responsible_ai_mcp.py` | MCP-style read-only server with validation and audit log |
+| `kubeflow_pipeline.py` | Kubeflow pipeline definition with `kfp` SDK |
+| `shoe_pipeline.yaml` | Compiled Kubeflow pipeline |
+| `schema.sql` | MySQL schema for `shops` and `products` tables |
+| `ci_seed.sql` | Test data for GitHub Actions |
+| `fashion_stores_shopify_woocommerce.xlsx` | Input store list (45 stores) |
+| `Dockerfile` | Docker image for the pipeline |
+| `docker-compose.yml` | Base for launching services with Docker Compose |
+| `.github/workflows/mlops.yml` | CI/CD workflow |
+| `.env.example` | Configuration example without real secrets |
 
-## Etape 1: Scraping de donnees
+## Step 1: Data Scraping
 
-Le scraping est implemente dans `step1_web_scraper.py`.
+Scraping is implemented in `step1_web_scraper.py`.
 
-Fonctionnalites:
+Features:
 
-- Lecture d'un fichier Excel contenant les boutiques a analyser.
-- Detection automatique de plateforme: Shopify, WooCommerce ou autre.
+- Reads an Excel file containing stores to analyze.
+- Automatic platform detection: Shopify, WooCommerce, or other.
 - Extraction via Shopify `/products.json`.
-- Extraction via sitemap Shopify.
-- Crawling HTML fallback pour les pages produits.
-- Parsing avec `requests` et `BeautifulSoup`.
-- Filtrage footwear par mots-cles.
-- Validation optionnelle avec LLM pour eviter les faux positifs.
-- Insertion des produits dans MySQL.
+- Extraction via Shopify sitemap.
+- HTML fallback crawling for product pages.
+- Parsing with `requests` and `BeautifulSoup`.
+- Fashion filtering by keywords (clothing + footwear).
+- Optional LLM validation to avoid false positives.
+- Automatic category, subcategory, and gender classification.
+- Insertion of products into MySQL.
+- Target: **5000 products** from **45 stores**.
 
-Donnees extraites:
+Data extracted:
 
-- Titre du produit
-- Prix courant
-- Disponibilite
+- Product title
+- Current price (USD)
+- Availability
 - Description
-- Vendeur / boutique
-- Categorie et sous-categorie
-- Marque
-- Image principale
-- URL produit
+- Vendor / store
+- Category (Clothing / Footwear)
+- Subcategory (T-Shirts, Sneakers, Dresses, Boots, etc.)
+- Brand
+- Main image
+- Product URL
 
-## Etape 2: Analyse et Top-K produits
+## Step 2: LLM Enrichment
 
-L'analyse est implementee dans `step3_ml_analytics.py`.
+Enrichment is implemented in `step2_llm_enrichment.py`.
 
-Le score ML combine plusieurs metriques:
+Supported providers:
 
-- Note moyenne
-- Nombre d'avis
-- Prix normalise
-- Disponibilite stock
+- Google Gemini
+- Groq
 
-Le script applique aussi:
+Generated attributes:
 
-- `KMeans` pour le clustering des styles
-- `PCA` pour la visualisation 2D
-- `XGBoost` pour predire le succes potentiel
-- `mlxtend` pour les regles d'association
-- Export Top-K dans `top_k_products.csv`
-- Export des correlations dans `footwear_correlations.csv`
+- `material`
+- `sole_type` (footwear) / fit type (clothing)
+- `closure`
+- `gender`
+- `season`
+- `style_type`
+- `short_description`
+- `persona_json`
 
-## Etape 3: Kubeflow Pipelines
+API keys are configured via `.env`.
 
-Le pipeline Kubeflow est defini dans `kubeflow_pipeline.py`.
+## Step 3: ML Analytics & Top-K
 
-Il contient trois composants:
+Analysis is implemented in `step3_ml_analytics.py`.
 
-1. `scrape_op`: execute `step1_web_scraper.py`
-2. `enrich_op`: execute `step2_llm_enrichment.py`
-3. `analyze_op`: execute `step3_ml_analytics.py`
+The ML score combines several metrics:
 
-Compiler le pipeline:
+- Average rating
+- Number of reviews
+- Normalized price
+- Stock availability
 
-```powershell
-python kubeflow_pipeline.py
-```
+The script also applies:
 
-Le fichier genere est:
+- `KMeans` for style clustering (up to 8 clusters)
+- `PCA` for 2D visualization
+- `XGBoost` to predict potential success
+- `mlxtend` for association rules
+- Export Top-K to `top_k_products.csv`
+- Export correlations to `fashion_correlations.csv`
 
-```text
-shoe_pipeline.yaml
-```
+## Step 4: BI Dashboard
 
-Important: l'execution reelle dans Kubeflow necessite Kubernetes et Kubeflow Pipelines. Avec Docker seul, on peut generer le YAML mais pas executer Kubeflow.
+The dashboard is implemented in `step4_bi_dashboard.py`.
 
-## Etape 4: Dashboard BI
+Features:
 
-Le dashboard est implemente dans `step4_bi_dashboard.py`.
+- Global KPIs
+- Curated Top Picks
+- Market Trends
+- Style Clusters
+- Brand Intelligence
+- Data Explorer
+- AI Insight Hub
+- Responsible AI View
 
-Fonctionnalites:
-
-- KPIs globaux
-- Produits Top Picks
-- Tendances du marche
-- Clusters de styles
-- Intelligence par marque
-- Exploration des donnees
-- Analyse produit detaillee
-- Hub d'insights AI
-- Vue Responsible AI
-
-Lancer le dashboard:
+Launch the dashboard:
 
 ```powershell
 streamlit run step4_bi_dashboard.py
 ```
 
-## Etape 5: LLM enrichment
+## Step 5: Kubeflow Pipelines
 
-L'enrichissement est implemente dans `step2_llm_enrichment.py`.
+The Kubeflow pipeline is defined in `kubeflow_pipeline.py`.
 
-Providers supportes:
-
-- Google Gemini
-- Groq
-
-Attributs generes:
-
-- `material`
-- `sole_type`
-- `closure`
-- `gender`
-- `short_description`
-- `persona_json`
-
-Les cles API sont configurees via `.env`.
-
-## Etape 6: Responsible AI avec MCP-style server
-
-Le fichier `step6_responsible_ai_mcp.py` expose un serveur MCP-style simplifie.
-
-Principes appliques:
-
-- Acces read-only aux donnees
-- Liste blanche d'outils autorises
-- Validation des parametres
-- Limite maximale sur les resultats
-- Journalisation dans `mcp_audit.log`
-- Pas d'exposition directe de secrets
-
-Outils exposes:
-
-- `get_top_shoes`
-- `analyze_cluster`
-- `get_shop_ranking`
-
-Tester:
+Compile the pipeline:
 
 ```powershell
-python step6_responsible_ai_mcp.py
+python kubeflow_pipeline.py
 ```
 
-## CI/CD
+## Step 6: Responsible AI with MCP-style Server
 
-Le workflow GitHub Actions se trouve dans `.github/workflows/mlops.yml`.
+The file `step6_responsible_ai_mcp.py` exposes a simplified MCP-style server.
 
-Il effectue:
+Applied principles:
 
-- Installation Python
-- Installation des dependances
-- Lancement MySQL 8.0
-- Creation du schema via `schema.sql`
-- Insertion de donnees test via `ci_seed.sql`
-- Execution de `step3_ml_analytics.py`
-- Compilation du pipeline Kubeflow
-- Verification des artefacts generes
+- Read-only data access
+- Whitelist of authorized tools
+- Parameter validation
+- Maximum result limit
+- Logging to `mcp_audit.log`
+- No direct secret exposure
 
-## Prerequis
+Exposed tools:
 
-- Python 3.10 ou 3.11
-- MySQL 8.0 ou MariaDB compatible
-- Docker optionnel
-- Kubernetes requis uniquement pour executer Kubeflow reellement
+- `get_top_products`
+- `analyze_cluster`
+- `get_shop_ranking`
+- `get_category_stats`
 
-## Installation locale
+## Prerequisites
 
-Creer un environnement Python:
+- Python 3.10 or 3.11
+- MySQL 8.0 or compatible MariaDB
+- Docker optional
+- Kubernetes required only for real Kubeflow execution
+
+## Local Installation
+
+Create a Python environment:
 
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 ```
 
-Installer les dependances:
+Install dependencies:
 
 ```powershell
 pip install -r requirements.txt
 ```
 
-Creer la base MySQL:
+Create the MySQL database:
 
 ```sql
 CREATE DATABASE smart_ecommerce;
 ```
 
-Importer le schema:
+Import the schema:
 
 ```powershell
 mysql -u root -p smart_ecommerce < schema.sql
 ```
 
-Configurer `.env`:
+Configure `.env`:
 
 ```env
 DB_HOST=localhost
 DB_USER=root
 DB_PASS=your_mysql_password
 DB_NAME=smart_ecommerce
-SHOP_INPUT_FILE=gulf_perfume_stores_shopify_woocommerce_verified.xlsx
+SHOP_INPUT_FILE=fashion_stores_shopify_woocommerce.xlsx
 
 GEMINI_KEYS=your_gemini_key
 GROQ_KEYS=your_groq_key
 ```
 
-## Execution locale
+## Local Execution
 
-Lancer tout le pipeline local:
+Run the full local pipeline:
 
 ```powershell
 python step5_mlops_pipeline.py
 ```
 
-Ou lancer les etapes separement:
+Or run steps separately:
 
 ```powershell
 python step1_web_scraper.py
@@ -285,89 +257,19 @@ python step2_llm_enrichment.py
 python step3_ml_analytics.py
 ```
 
-Lancer le dashboard:
+Launch the dashboard:
 
 ```powershell
 streamlit run step4_bi_dashboard.py
 ```
 
-## Execution avec Docker
+## Generated Artifacts
 
-Construire l'image:
-
-```powershell
-docker build -t smart-shoe-pipeline:latest .
-```
-
-Si MySQL tourne sur la machine hote, utiliser dans `.env`:
-
-```env
-DB_HOST=host.docker.internal
-```
-
-Lancer le pipeline:
-
-```powershell
-docker run --env-file .env smart-shoe-pipeline:latest
-```
-
-## Kubeflow
-
-Compiler le pipeline:
-
-```powershell
-python kubeflow_pipeline.py
-```
-
-Uploader `shoe_pipeline.yaml` dans Kubeflow Pipelines UI.
-
-Pour une execution reelle, il faut:
-
-- Kubernetes actif
-- Kubeflow Pipelines installe
-- Image `smart-shoe-pipeline:latest` disponible dans le cluster
-- Acces reseau depuis les pods vers MySQL
-- Variables d'environnement/secrets configures pour DB et LLM
-
-## Artefacts generes
-
-| Artefact | Description |
+| Artifact | Description |
 |---|---|
-| `shoe_pipeline.yaml` | Pipeline Kubeflow compile |
-| `top_k_products.csv` | Selection des meilleurs produits |
-| `footwear_correlations.csv` | Regles d'association entre attributs footwear |
-| `mcp_audit.log` | Logs d'acces aux outils MCP-style |
+| `shoe_pipeline.yaml` | Compiled Kubeflow pipeline |
+| `top_k_products.csv` | Selection of the best products |
+| `fashion_correlations.csv` | Association rules between fashion attributes |
+| `mcp_audit.log` | MCP-style tool access logs |
 
-## Securite
-
-- Ne jamais commiter `.env`.
-- Ne jamais mettre de vraies cles API dans `.env.example`.
-- Les cles Gemini/Groq doivent etre stockees localement ou dans des secrets CI/CD.
-- Si une cle a deja ete publiee, elle doit etre revoquee et remplacee.
-
-## Limites actuelles
-
-- Le scraping dynamique JavaScript avec Selenium/Playwright n'est pas encore active.
-- WooCommerce REST API n'est pas encore utilisee avec authentification officielle.
-- Le pipeline Kubeflow necessite un environnement Kubernetes pour execution reelle.
-- Les resultats ML dependent fortement de la qualite des donnees scrapees et enrichies.
-
-## Commandes utiles
-
-Verifier la syntaxe Python:
-
-```powershell
-python -m py_compile step1_web_scraper.py step2_llm_enrichment.py step3_ml_analytics.py step4_bi_dashboard.py step5_mlops_pipeline.py step6_responsible_ai_mcp.py kubeflow_pipeline.py
-```
-
-Compiler Kubeflow:
-
-```powershell
-python kubeflow_pipeline.py
-```
-
-Lancer le dashboard:
-
-```powershell
-streamlit run step4_bi_dashboard.py
-```
+## Security

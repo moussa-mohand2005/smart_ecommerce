@@ -17,7 +17,7 @@ def run_step(step_name, script_name):
 
 def main():
     print("\n" + "*"*60)
-    print("      SMART SHOE INTELLIGENCE - MLOps MASTER PIPELINE      ")
+    print("    SMART FASHION INTELLIGENCE - MLOps MASTER PIPELINE    ")
     print("*"*60)
     
     run_step("Data Scraping & Collection", "step1_web_scraper.py")

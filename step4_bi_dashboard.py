@@ -16,8 +16,8 @@ except ImportError:
 load_dotenv()
 
 st.set_page_config(
-    page_title="Smart Shoe BI",
-    page_icon="👟",
+    page_title="Smart Fashion BI",
+    page_icon="👗",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -477,7 +477,7 @@ with st.sidebar:
     <div class="sb-logo">
         <div class="sb-logo-icon"><i class="bi bi-layers-half"></i></div>
         <div>
-            <div class="sb-logo-text">Smart Shoe</div>
+            <div class="sb-logo-text">Smart Fashion</div>
             <div class="sb-logo-sub">BI Platform</div>
         </div>
     </div>
@@ -531,17 +531,17 @@ fdf = fdf[fdf['ml_score'] >= min_score]
 if selected_clusters:
     fdf = fdf[fdf['cluster_id'].isin([int(c) for c in selected_clusters])]
 if show_instock:
-    fdf = fdf[fdf['stock_status'].astype(str).str.lower().str.contains("instock", na=False)]
+    fdf = fdf[fdf['stock_status'].astype(str).str.lower().str.replace('-','_').str.contains("in_stock|instock", na=False, regex=True)]
 
-in_stock_count = len(df[df['stock_status'].astype(str).str.lower().str.contains("instock", na=False)])
+in_stock_count = len(df[df['stock_status'].astype(str).str.lower().str.replace('-','_').str.contains('in_stock|instock', na=False, regex=True)])
 masterpiece_count = len(df[df['ml_score'] >= 90])
 active_filters_count = len(fdf)
 
 if selected_page == "Curated Top Picks":
     header_col, _ = st.columns([3, 1])
     with header_col:
-        st.markdown('<div class="page-title">Smart Ecommerce</div>', unsafe_allow_html=True)
-        st.markdown('<div class="page-sub">Enterprise Asset Management & AI Valuation</div>', unsafe_allow_html=True)
+        st.markdown('<div class="page-title">Smart Fashion Intelligence</div>', unsafe_allow_html=True)
+        st.markdown('<div class="page-sub">Clothing & Footwear · AI-Powered Catalog Analytics</div>', unsafe_allow_html=True)
 
     kpis = [
         ("Inventory Volume", f"{len(df):,}", "accent", f"{len(fdf):,} Active"),
@@ -797,9 +797,9 @@ elif selected_page == "Brand Intelligence":
         }
     )
 
-    st.markdown('<div class="section-heading" style="margin-top:1.5rem;">🧬 Footwear Attribute Correlations</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-heading" style="margin-top:1.5rem;">🧬 Fashion Attribute Correlations</div>', unsafe_allow_html=True)
     try:
-        rules = pd.read_csv("footwear_correlations.csv")
+        rules = pd.read_csv("fashion_correlations.csv")
         fig_network = render_association_network(rules)
         if fig_network:
             st.plotly_chart(fig_network, use_container_width=True)
@@ -1024,7 +1024,7 @@ elif selected_page == "AI Insight Hub":
                         client = Groq(api_key=key)
                         resp = client.chat.completions.create(
                             messages=[
-                                {"role":"system","content":"You are a luxury footwear market analyst. Provide concise, insightful strategic analysis in English. Use bullet points and clear sections."},
+                                {"role":"system","content":"You are a fashion and apparel market analyst. Provide concise, insightful strategic analysis in English. Use bullet points and clear sections."},
                                 {"role":"user","content":f"Analyze this e-commerce catalog data and provide strategic recommendations:\n\n{summary_raw}"}
                             ],
                             model="llama-3.1-8b-instant"
@@ -1040,7 +1040,7 @@ elif selected_page == "AI Insight Hub":
                         genai.configure(api_key=key)
                         model = genai.GenerativeModel("gemini-2.0-flash")
                         response = model.generate_content(
-                            f"System: You are a luxury footwear market analyst. Provide concise, insightful strategic analysis in English. Use bullet points and clear sections.\n\nUser: Analyze this e-commerce catalog data:\n{summary_raw}"
+                            f"System: You are a fashion and apparel market analyst. Provide concise, insightful strategic analysis in English. Use bullet points and clear sections.\n\nUser: Analyze this e-commerce catalog data:\n{summary_raw}"
                         )
                         report_content = response.text
                         break
@@ -1080,12 +1080,12 @@ elif selected_page == "Responsible AI":
 
     with c2:
         try:
-            from step6_responsible_ai_mcp import ShoeMCPServer
+            from step6_responsible_ai_mcp import FashionMCPServer as ShoeMCPServer
             server = ShoeMCPServer()
             tools = server.list_tools()
             st.json(tools)
             if st.button("▶ Simulate Responsible Tool Call"):
-                result = server.call_tool("get_top_shoes", {"limit": 2})
+                result = server.call_tool("get_top_products", {"limit": 2})
                 st.success("✅ Tool Executed Successfully")
                 st.json(result)
         except ImportError:
@@ -1101,6 +1101,6 @@ elif selected_page == "Responsible AI":
 st.markdown("""
 <div style="text-align:center;padding:2.5rem 0 1rem;font-size:0.6rem;
 color:#2a3532;text-transform:uppercase;letter-spacing:0.2em;">
-Smart Shoe — Business Intelligence Platform &nbsp;·&nbsp; AI-Powered Catalog Analytics
+Smart Fashion — Business Intelligence Platform &nbsp;·&nbsp; AI-Powered Catalog Analytics
 </div>
 """, unsafe_allow_html=True)

@@ -44,11 +44,11 @@ def calculate_scores(df):
     return df
 
 def run_clustering(df):
-    df['all_notes'] = (df['material'].fillna('') + " " + df['sole_type'].fillna('') + " " + df['closure'].fillna('')).str.strip()
+    df['all_notes'] = (df['material'].fillna('') + " " + df['sole_type'].fillna('') + " " + df['closure'].fillna('') + " " + df['style_type'].fillna('') + " " + df['season'].fillna('')).str.strip()
     if df['all_notes'].str.len().sum() > 0:
         vectorizer = TfidfVectorizer(stop_words='english', max_features=100)
         X = vectorizer.fit_transform(df['all_notes'])
-        n_clusters = min(5, X.shape[0])
+        n_clusters = min(8, X.shape[0])
         if n_clusters > 1:
             
             if np.unique(X.toarray(), axis=0).shape[0] < n_clusters:
@@ -68,8 +68,8 @@ def run_clustering(df):
     return df
 
 def run_pca(df):
-    """Réduit les dimensions pour la visualisation dans le dashboard (Footwear)."""
-    df['all_features'] = (df['material'].fillna('') + " " + df['sole_type'].fillna('') + " " + df['closure'].fillna('')).str.strip()
+    """Reduce dimensions for dashboard visualization (Fashion products)."""
+    df['all_features'] = (df['material'].fillna('') + " " + df['sole_type'].fillna('') + " " + df['closure'].fillna('') + " " + df['style_type'].fillna('') + " " + df['season'].fillna('')).str.strip()
     if df['all_features'].str.len().sum() > 0:
         vectorizer = TfidfVectorizer(max_features=50)
         X = vectorizer.fit_transform(df['all_features']).toarray()
@@ -80,11 +80,11 @@ def run_pca(df):
     return df
 
 def run_predictive_model(df):
-    """Entraîne un modèle XGBoost pour prédire le 'Succès Potentiel' avec évaluation."""
+    """Train an XGBoost model to predict 'Potential Success' with evaluation."""
     from sklearn.model_selection import train_test_split
     from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
     
-    # Simulation de 'target' si non présente
+    # Simulation of 'target' if not present
     df['target_success'] = df['ml_score'] * (1 + 0.1 * (df['reviews_count'] > df['reviews_count'].median()))
     
     features = ['score_price', 'score_rating', 'score_reviews', 'in_stock']
@@ -109,7 +109,6 @@ def run_predictive_model(df):
     print(f"MAE: {mae:.4f}")
     print(f"R² Score: {r2:.4f}")
     
-    # Simple binary evaluation (Success > 60) for metrics like Precision/Recall if translated to class
     y_test_class = (y_test > 60).astype(int)
     y_pred_class = (y_pred > 60).astype(int)
     from sklearn.metrics import classification_report
@@ -126,8 +125,8 @@ def run_association_rules(df):
     transactions = []
     for _, row in df.iterrows():
         notes = []
-        for col in ['material', 'sole_type', 'closure']:
-            if pd.notna(row[col]): notes.extend([n.strip().lower() for n in str(row[col]).split(',') if n.strip()])
+        for col in ['material', 'sole_type', 'closure', 'style_type', 'season']:
+            if pd.notna(row.get(col)): notes.extend([n.strip().lower() for n in str(row[col]).split(',') if n.strip()])
         if notes: transactions.append(list(set(notes)))
     if not transactions: return pd.DataFrame()
     mlb = MultiLabelBinarizer()
@@ -142,9 +141,9 @@ def run_association_rules(df):
 def export_top_k(df, output_path="top_k_products.csv", k=TOP_K):
     """Export the Top-K products for reporting, BI, and downstream orchestration."""
     columns = [
-        'product_id', 'product_name', 'brand', 'current_price', 'currency',
-        'stock_status', 'rating_avg', 'reviews_count', 'ml_score',
-        'predicted_success', 'cluster_id', 'product_url'
+        'product_id', 'product_name', 'brand', 'category', 'subcategory',
+        'current_price', 'currency', 'stock_status', 'rating_avg',
+        'reviews_count', 'ml_score', 'predicted_success', 'cluster_id', 'product_url'
     ]
     available_columns = [col for col in columns if col in df.columns]
     top_k = df.sort_values(
@@ -163,7 +162,7 @@ def main():
         df = df.dropna(subset=['product_id'])
         if df.empty: return
         
-        print(f"Analyzing {len(df)} products...")
+        print(f"Analyzing {len(df)} fashion products...")
         df = calculate_scores(df)
         df = run_clustering(df)
         df = run_pca(df)
@@ -171,7 +170,7 @@ def main():
         export_top_k(df)
         
         rules = run_association_rules(df)
-        if not rules.empty: rules.to_csv("footwear_correlations.csv", index=False)
+        if not rules.empty: rules.to_csv("fashion_correlations.csv", index=False)
 
         with conn.cursor() as cur:
             for _, row in df.iterrows():
