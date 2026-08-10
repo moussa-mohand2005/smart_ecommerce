@@ -52,6 +52,24 @@ Responsible AI:
     step6_responsible_ai_mcp.py
 ```
 
+## Architecture & Dashboard Preview
+
+### GCP Architecture
+
+![Smart Fashion Intelligence GCP architecture](docs/images/smart-fashion-gcp-architecture-neon.png)
+
+### End-to-End MLOps Pipeline
+
+![Smart Fashion Intelligence MLOps pipeline](docs/images/smart-fashion-mlops-pipeline.png)
+
+### Dashboard Overview
+
+![Smart Fashion Intelligence dashboard overview](docs/images/dashboard-overview-top-picks.png)
+
+### Style Clusters
+
+![Smart Fashion Intelligence style clusters](docs/images/dashboard-style-clusters.png)
+
 ## Project Structure
 
 | File | Role |
