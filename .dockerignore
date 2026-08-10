@@ -12,3 +12,7 @@ note_correlations.csv
 .vscode/
 *.docx
 Rapport_Final.md
+dashboard-next/node_modules/
+dashboard-next/.next/
+*.tsbuildinfo
+smart_ecommerce_cloudsql.sql*

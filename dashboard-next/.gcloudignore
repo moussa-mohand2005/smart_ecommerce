@@ -1,0 +1,10 @@
+.gcloudignore
+.git
+.gitignore
+.next
+node_modules
+node_modules.partial
+.env*
+*.tsbuildinfo
+npm-debug.log*
+dashboard-preview*.png

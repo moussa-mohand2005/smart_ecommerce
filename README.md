@@ -4,6 +4,8 @@ Smart Fashion Intelligence is an MLOps product intelligence project for e-commer
 
 The main use case is intelligent analysis of fashion products: clothing (shirts, jackets, dresses, pants, hoodies...) and footwear (sneakers, boots, sandals, heels...) for all demographics (men, women, kids, unisex).
 
+**Live dashboard:** [smart-shoe-dashboard-7qch3vsahq-uc.a.run.app](https://smart-shoe-dashboard-7qch3vsahq-uc.a.run.app)
+
 ## Objectives
 
 - Automatically scrape products from Shopify/WooCommerce stores.
@@ -11,7 +13,7 @@ The main use case is intelligent analysis of fashion products: clothing (shirts,
 - Enrich product listings with technical attributes: material, fit/sole type, closure, gender, season, style type, short description, and marketing persona.
 - Calculate an ML score to identify the most attractive products.
 - Export a Top-K selection of the best products.
-- Visualize KPIs, trends, clusters, and recommendations in Streamlit.
+- Visualize KPIs, trends, clusters, and recommendations in a responsive Next.js application.
 - Orchestrate the workflow with an MLOps/Kubeflow pipeline.
 - Control data access via a responsible MCP-style server.
 - Automate basic tests with GitHub Actions.
@@ -38,8 +40,8 @@ step3_ml_analytics.py
     +--> fashion_correlations.csv
     |
     v
-step4_bi_dashboard.py
-    BI Dashboard: Streamlit + Plotly
+dashboard-next/
+    Next.js dashboard, server APIs, AI insights, and MCP tools
 
 Orchestration:
     step5_mlops_pipeline.py
@@ -57,17 +59,17 @@ Responsible AI:
 | `step1_web_scraper.py` | Scraping Shopify/WooCommerce, HTML crawling, product extraction, DB insertion |
 | `step2_llm_enrichment.py` | LLM enrichment with Gemini/Groq |
 | `step3_ml_analytics.py` | ML scoring, clustering, PCA, XGBoost, Top-K |
-| `step4_bi_dashboard.py` | Business Intelligence Streamlit Dashboard |
+| `dashboard-next/` | Production Next.js dashboard and server-side APIs |
+| `step4_bi_dashboard.py` | Legacy Streamlit dashboard |
 | `step5_mlops_pipeline.py` | Local pipeline that runs steps 1, 2, and 3 |
 | `step6_responsible_ai_mcp.py` | MCP-style read-only server with validation and audit log |
 | `kubeflow_pipeline.py` | Kubeflow pipeline definition with `kfp` SDK |
 | `shoe_pipeline.yaml` | Compiled Kubeflow pipeline |
 | `schema.sql` | MySQL schema for `shops` and `products` tables |
-| `ci_seed.sql` | Test data for GitHub Actions |
 | `fashion_stores_shopify_woocommerce.xlsx` | Input store list (45 stores) |
 | `Dockerfile` | Docker image for the pipeline |
 | `docker-compose.yml` | Base for launching services with Docker Compose |
-| `.github/workflows/mlops.yml` | CI/CD workflow |
+| `.github/workflows/ci.yml` | Python and Next.js CI checks |
 | `.env.example` | Configuration example without real secrets |
 
 ## Step 1: Data Scraping
@@ -145,7 +147,7 @@ The script also applies:
 
 ## Step 4: BI Dashboard
 
-The dashboard is implemented in `step4_bi_dashboard.py`.
+The production dashboard is implemented with Next.js in `dashboard-next/`. It reads MySQL only through server-side route handlers, keeps credentials out of the browser, and uses server-side filtering and pagination. The previous Streamlit implementation remains in `step4_bi_dashboard.py` as a legacy reference.
 
 Features:
 
@@ -158,11 +160,15 @@ Features:
 - AI Insight Hub
 - Responsible AI View
 
-Launch the dashboard:
+Launch the dashboard locally:
 
 ```powershell
-streamlit run step4_bi_dashboard.py
+cd dashboard-next
+npm ci
+npm run dev
 ```
+
+Open [http://localhost:3000](http://localhost:3000).
 
 ## Step 5: Kubeflow Pipelines
 
@@ -197,6 +203,7 @@ Exposed tools:
 ## Prerequisites
 
 - Python 3.10 or 3.11
+- Node.js 24 or newer
 - MySQL 8.0 or compatible MariaDB
 - Docker optional
 - Kubernetes required only for real Kubeflow execution
@@ -257,10 +264,12 @@ python step2_llm_enrichment.py
 python step3_ml_analytics.py
 ```
 
-Launch the dashboard:
+Launch the production dashboard locally:
 
 ```powershell
-streamlit run step4_bi_dashboard.py
+cd dashboard-next
+npm ci
+npm run dev
 ```
 
 ## Generated Artifacts
@@ -271,4 +280,65 @@ streamlit run step4_bi_dashboard.py
 | `top_k_products.csv` | Selection of the best products |
 | `fashion_correlations.csv` | Association rules between fashion attributes |
 | `mcp_audit.log` | MCP-style tool access logs |
+
+## Dashboard API
+
+| Method | Route | Description |
+|---|---|---|
+| `GET` | `/api/dashboard` | Filtered KPIs, charts, products, and pagination |
+| `POST` | `/api/insights` | AI-generated strategic market brief |
+| `GET` | `/api/mcp` | Lists controlled database tools |
+| `POST` | `/api/mcp` | Executes a validated MCP-style tool |
+
+## Quality Checks
+
+```powershell
+python -c "from pathlib import Path; [compile(p.read_text(encoding='utf-8'), str(p), 'exec') for p in Path('.').glob('*.py')]"
+cd dashboard-next
+npm run typecheck
+npm run build
+```
+
+GitHub Actions runs equivalent Python and Next.js checks for every push and pull request targeting `main`.
+
+## Docker
+
+Run the dashboard without starting the paid scraping pipeline:
+
+```powershell
+docker compose up --build dashboard
+```
+
+The Python pipeline is behind an explicit Compose profile:
+
+```powershell
+docker compose --profile pipeline run --rm app
+```
+
+## Google Cloud Deployment
+
+The live deployment is hosted in project `tangier-weather-de-2026-0718`:
+
+- Cloud Run service: `smart-shoe-dashboard`
+- Cloud SQL instance: `smart-shoe-mysql` in `us-central1`
+- Secret Manager for database and provider credentials
+- Vertex AI fallback for AI Insight reports
+- Dedicated least-privilege runtime service account
+
+Cloud Run connects through the Cloud SQL connector. The database has deletion protection enabled and no externally authorized network ranges.
+
+## Security
+
+- Never commit `.env` or provider credentials; `.env.example` contains placeholders only.
+- SQL filters and MCP tools use parameterized queries.
+- Database and AI credentials remain server-side.
+- External catalog values are rendered as React text instead of injected HTML.
+- Secret Manager versions are pinned in the deployed Cloud Run revision.
+
+## Known Limitations
+
+- Scraped classifications still require stronger validation and may contain non-fashion products.
+- The predictive target is derived from internal catalog signals and is not a substitute for real sales labels.
+- Kubeflow components are demonstrative until the production scripts and dependencies are packaged into their component images.
+- Unit and integration test coverage should be expanded beyond the current build and syntax checks.
 

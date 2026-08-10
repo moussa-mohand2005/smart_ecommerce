@@ -1,13 +1,25 @@
-version: '3.8'
-
 services:
   app:
     build: .
+    profiles: ["pipeline"]
     volumes:
       - .:/app
     env_file:
       - .env
-    restart: always
+    restart: "no"
+
+  dashboard:
+    build:
+      context: ./dashboard-next
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    environment:
+      DB_HOST: ${DASHBOARD_DB_HOST:-host.docker.internal}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
 
   # Optional: database service if user wants to run it in docker too
   # db:
